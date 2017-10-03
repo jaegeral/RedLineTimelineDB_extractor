@@ -15,6 +15,7 @@ The RedLineTimelineDB_extractor is NOT made to replace Redline.
 ** wait till the script finishes
 * locate the SystemXYZ.mans.csv
 * continue your analysis with the generated CSV file
+** if you passed a **folder + filename** as an argument, the CSV will be created in the **same folder**
 
 # Notes
 

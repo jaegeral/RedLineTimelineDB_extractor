@@ -5,9 +5,7 @@ email:
 '''
 
 import argparse
-import time
 import sys
-import os
 import logging
 import csv
 
@@ -33,32 +31,58 @@ def read_sql(f):
     # this method reads the file
     # Query:
     # Select EventTimestamp, EventType, AuditType, Summary1, Summary2,  Summary3, UniqueUsername from TimelineItems LEFT JOIN ItemSummaries ON TimelineItems.ItemSummaryID = ItemSummaries.ID LIMIT 10
-    import sqlite3
-    conn = sqlite3.connect(f)
-    c = conn.cursor()
+    try:
+        import sqlite3
+        conn = sqlite3.connect(f)
+        c = conn.cursor()
 
-    dataCopy = c.execute("select count(*) from TimelineItems")
-    values = dataCopy.fetchone()
-    logger.info("Number of rows: %s",values[0])
+        dataCopy = c.execute("select count(*) from TimelineItems LEFT JOIN ItemSummaries ON TimelineItems.ItemSummaryID = ItemSummaries.ID LIMIT 10")
+        values = dataCopy.fetchone()
+        logger.info("Number of rows: %s",values[0])
+        conn.commit()
+        limit = values[0]
 
-    with open('output.csv', 'wb') as f:
-        writer = csv.writer(f)
-        writer.writerow(['ID','EventTimestamp', 'EventType', 'AuditType', 'Summary1', 'Summary2','Summary3', 'UniqueUsernameColumn 1', 'Column 2'])
-        for row in c.execute('SELECT * FROM TimelineItems ORDER BY ItemSummaryID'):
-            print row
-        #    writer.writerows(row)
+        csvfilename = f+".csv"
 
-        # this will be used to extract it to CSV
+        with open(csvfilename, 'w', newline='') as csvfile:
+            spamwriter = csv.writer(csvfile, delimiter=',',
+                                    quotechar='|', quoting=csv.QUOTE_MINIMAL)
+            spamwriter.writerow(['EventTimestamp', 'EventType', 'AuditType', 'Summary1', 'Summary2',  'Summary3', 'UniqueUsername'])
 
+            loopcount = limit
+            i = 1
+            step = 10000
+
+            #loopcount = 500 #for testing you can limit the amount of entries to be processed
+            while i < loopcount:
+                logger.info("Processing %s-%s / %s",i,i+step,loopcount)
+                for row in c.execute(
+                        'Select EventTimestamp, EventType, AuditType, Summary1, Summary2,  Summary3, UniqueUsername from TimelineItems LEFT JOIN ItemSummaries ON TimelineItems.ItemSummaryID = ItemSummaries.ID LIMIT ? , ?',(i,step)):
+                    # TODO check if it is possible to implement:  ORDER BY EventTimestamp DESC but that appear to take a lot of CPU power
+
+                    new = row[0].replace('Z', '') #remove Z for Zulu time for further processing
+                    tpl = (new,) + row[1:]
+                    #logger.info(tpl) #print out the current line
+                    spamwriter.writerow(tpl)
+
+
+                i += step
+
+            logger.info("Finished processing")
+
+        conn.close()
+    except:
+        e = sys.exc_info()[0]
+        print("<p>Error: %s</p>" % e)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Process some integers.')
     inputg = parser.add_mutually_exclusive_group(required=True)
 
     inputg.add_argument("-f", "--file", help="The DB file to convert")
-    parser.add_argument('-o', '--outfile', help="The file to output to. Default is stdout.", default="stdout")
+    #TODO
+    #parser.add_argument('-o', '--outfile', help="The file to output to. Default is stdout.", default="stdout")
     parser.add_argument("-v", "--verbose", help="More output", default=False, action="store_true")
-    parser.add_argument("-l", "--logfile", help="Where to send the log to", default="converter.log")
 
     args = parser.parse_args()
 
@@ -68,16 +92,12 @@ if __name__ == "__main__":
 
     if (args.file):
 
-        logger.debug("Converting file at %s", args.file)
+        logger.info("Converting file at %s", args.file)
 
-        # This is just a file conversion
-        # Relatively quick and easy
-        # Create a non-connected misp instance
         try:
             with open(args.file, "r") as f:
-                #jsondata = f.read()
                 logger.debug("will do something")
                 read_sql(args.file)
         except:
-            print("Could not open {}".format(args.file))
+            logger.error("Could not open {}".format(args.file))
             sys.exit()
