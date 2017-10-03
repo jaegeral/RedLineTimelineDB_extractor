@@ -1,7 +1,7 @@
 # RedLineTimelineDB_extractor
 Extracts the Timeline of a Redline parsed sqlite database so it can be used e.g. in an ELK stack.
 
-##Redline
+## Redline
 
 [Redline](https://www.fireeye.com/services/freeware/redline.html) is a tool developed by Mandiant / Fireeye to do live forensics / Incident response.
 
@@ -16,14 +16,14 @@ The RedLineTimelineDB_extractor is NOT made to replace Redline.
 *locate the SystemXYZ.mans.csv
 *continue your analysis with the generated CSV file
 
-#Notes
+# Notes
 
-##Timestamps
+## Timestamps
 
 As Redline writes every timestamp with a Z for Zulu at the end of the timeline, but most tools cannot deal with it, it will be **removed in every line**.
 Every timestamp is **UTC**.
 
-##Performance
+## Performance
 
 The script was tested on a regular notebook with a SQLite database **1,1 GB** with  1920738 enties in timetable and it took
 around **3 minutes** to create the CSV file with a size of **485 MB**.
