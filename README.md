@@ -12,9 +12,9 @@ The RedLineTimelineDB_extractor is NOT made to replace Redline.
 * Process the Live response file in redline, to create a SQLlite out of the XML files.
 * Locate the SQLite database file *e.g. SystemXYZ.mans*
 * `python3 -f SystemXYZ.mans` 
-**wait till the script finishes
-*locate the SystemXYZ.mans.csv
-*continue your analysis with the generated CSV file
+** wait till the script finishes
+* locate the SystemXYZ.mans.csv
+* continue your analysis with the generated CSV file
 
 # Notes
 
