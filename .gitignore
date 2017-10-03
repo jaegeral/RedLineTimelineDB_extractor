@@ -102,3 +102,4 @@ ENV/
 
 *test.db*
 output.csv
+*.mans
